@@ -1,21 +1,18 @@
+
+import os
+
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-DATABASE_URL = (
-    "postgresql://"
-    "idp_user:"
-    "idp_password@"
-    "localhost:5432/"
-    "idp_db"
-)
-
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL environment variable is missing")
 
 engine = create_engine(
     DATABASE_URL,
+    pool_pre_ping=True,
 )
-
 
 SessionLocal = sessionmaker(
     autocommit=False,
@@ -23,15 +20,12 @@ SessionLocal = sessionmaker(
     bind=engine,
 )
 
-
 Base = declarative_base()
 
 
 def get_db():
     db = SessionLocal()
-
     try:
         yield db
-
     finally:
         db.close()
